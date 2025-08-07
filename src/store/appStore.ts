@@ -44,6 +44,7 @@ interface AppActions {
   ) => void;
   updateTask: (updatedTask: Task) => void;
   deleteTask: (taskId: string) => void;
+  updateObjective: (updatedObjective: Objective) => void;
 }
 
 /**
@@ -116,6 +117,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set((state) => ({
       isSidebarCollapsed: !state.isSidebarCollapsed,
     })),
+
   // Add a new task to tasks array
   addTask: (newTask) =>
     set((state) => ({
@@ -128,6 +130,13 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set((state) => ({
       tasks: state.tasks.map((task) =>
         task.id === updatedTask.id ? updatedTask : task
+      ),
+    })),
+
+  updateObjective: (updatedObjective) =>
+    set((state) => ({
+      objectives: state.objectives.map((obj) =>
+        obj.id === updatedObjective.id ? updatedObjective : obj
       ),
     })),
 

@@ -5,6 +5,7 @@ import { DashboardView } from '@/views/DashboardView';
 import { CalendarView } from '@/views/CalendarView';
 import { GraphView } from '@/views/GraphView';
 import { AllTasksView } from '@/views/AllTasksView';
+import { ObjectivesView } from '@/views/ObjectivesView';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/graph" element={<GraphView />} />
         <Route path="/tasks" element={<AllTasksView />} />
+        <Route path="/objectives/:objectiveId" element={<ObjectivesView />} />
       </Route>
     </Routes>
   );
