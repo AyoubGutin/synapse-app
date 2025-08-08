@@ -3,6 +3,7 @@
  * Placeholdersfor now
  * @todo finish settings
  * @todo show list of tasks
+ * @todo allow user to deletw
  */
 
 import { useParams, useNavigate } from 'react-router-dom';
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/card';
 import { TaskList } from '@/components/task/TaskList';
 import { useMemo } from 'react';
+import { Trash2 } from 'lucide-react';
 
 export function ObjectivesView() {
   const { objectiveId } = useParams<{ objectiveId: string }>();
@@ -53,19 +55,26 @@ export function ObjectivesView() {
   return (
     <div className="space-y-6">
       {/* header with editable title */}
-      <div>
-        <Label
-          htmlFor="objective-title"
-          className="text-xs text-muted-foreground"
-        >
-          objective title:
-        </Label>
-        <Input
-          id="objective-title"
-          className="text-3xl font-bold h-auto p-0 border-none focus-visible:ring-0"
-          value={objective.title}
-          onChange={(e) => handleTitleChange(e.target.value)}
-        />
+      <div className="flex justify-between flex-row items-center">
+        <div className="space-y-2">
+          <Label
+            htmlFor="objective-title"
+            className="text-xs text-muted-foreground"
+          >
+            objective title:
+          </Label>
+          <Input
+            id="objective-title"
+            className="text-3xl font-bold h-auto"
+            value={objective.title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Button variant="destructive" className="size-10">
+            <Trash2 />
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

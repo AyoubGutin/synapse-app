@@ -127,11 +127,25 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
   // Update a exising task by creating a new array, replacing old task with updated one
   updateTask: (updatedTask) =>
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === updatedTask.id ? updatedTask : task
-      ),
-    })),
+    set((state) => {
+      const updateRecursively = (tasks: Task[]): Task[] =>
+        tasks.map((task) => {
+          if (task.id === updatedTask.id) {
+            // if id matches a task, merge the task object with the uodated task
+            return { ...task, ...updatedTask };
+          }
+          if (task.subtasks?.length) {
+            // if a task has subtasks, apply the update recursively to the nested tasks
+            const newSubtasks = updateRecursively(task.subtasks);
+            if (newSubtasks !== task.subtasks) {
+              return { ...task, subtasks: newSubtasks };
+            }
+          }
+          return task;
+        });
+
+      return { tasks: updateRecursively(state.tasks) };
+    }),
 
   updateObjective: (updatedObjective) =>
     set((state) => ({
@@ -142,9 +156,36 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
   // Delete a task from the tasks array, by making a new array filtering out old id
   deleteTask: (taskId) =>
-    set((state) => ({
-      tasks: state.tasks.filter((task) => task.id !== taskId),
-    })),
+    set((state) => {
+      const deleteRecursively = (tasks: Task[]): Task[] => {
+        // Check if the task to be deleted exists at the current level.
+        const taskExistsAtThisLevel = tasks.some((task) => task.id === taskId); // .some checks if at least one item in array
+
+        let newTasks = tasks; // this will hold the updated task array
+
+        // If the task is at this level, filter it out.
+        if (taskExistsAtThisLevel) {
+          newTasks = tasks.filter((task) => task.id !== taskId);
+        }
+
+        // Now, map over the list to check subtasks.
+        return newTasks.map((task) => {
+          // If the task has subtasks, we need to recurse.
+          if (task.subtasks) {
+            const newSubtasks = deleteRecursively(task.subtasks);
+
+            // This is the key: only create a new parent object if the subtasks array has actually changed.
+            if (newSubtasks.length !== task.subtasks.length) {
+              return { ...task, subtasks: newSubtasks };
+            }
+          }
+          // If no changes occurred in the subtasks, return the original task object.
+          return task;
+        });
+      };
+
+      return { tasks: deleteRecursively(state.tasks) };
+    }),
 
   // Add a new objective to the objectives array
   addObjective: (newObjective) =>
