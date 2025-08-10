@@ -2,6 +2,7 @@
  * @file Shows the users tasks due today
  * @todo Make this a toggle. User can switch between daily, weekly, monthly
  * @todo Could redirect to calendar?
+ * @todo bug - shows duplicates if parent + subtask both due - remove toggle only show individual task
  */
 
 // -- Imports -

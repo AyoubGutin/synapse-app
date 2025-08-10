@@ -3,7 +3,8 @@
  * Placeholdersfor now
  * @todo finish settings
  * @todo show list of tasks
- * @todo allow user to deletw
+ * @todo allow user to delete
+ * @todo separate this out
  */
 
 import { useParams, useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ import type { Task } from '@/types/taskTypes';
 import { TaskList } from '@/components/task/TaskList';
 import { EditTaskDialog } from '@/components/modals/EditTaskDialog';
 import { useTasks } from '@/hooks/use-normalise-store';
+import { ConfirmationDialog } from '@/components/modals/ConfirmationDialog';
 
 const EMPTY_OBJECTIVES: [] = [];
 
@@ -32,13 +34,18 @@ export function ObjectivesView() {
   const navigate = useNavigate();
 
   const tasks = useTasks();
-
-  const { objectives: objectivesObject, updateObjective } = useAppStore();
+  const {
+    objectives: objectivesObject,
+    updateObjective,
+    deleteObjective,
+  } = useAppStore();
 
   const objective = objectivesObject[objectiveId || ''];
 
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
+    useState(false);
 
   const handleEditTask = useCallback((task: Task) => {
     setTaskToEdit(task);
@@ -55,6 +62,12 @@ export function ObjectivesView() {
   const objectiveTasks = useMemo(() => {
     return tasks.filter((task) => task.objectiveId === objectiveId);
   }, [tasks, objectiveId]);
+
+  const handleDelete = () => {
+    if (!objectiveId) return;
+    deleteObjective(objectiveId);
+    navigate('/');
+  };
 
   if (!objective) {
     return (
@@ -92,7 +105,11 @@ export function ObjectivesView() {
           />
         </div>
         <div className="space-y-2">
-          <Button variant="destructive" className="size-10">
+          <Button
+            variant="destructive"
+            className="size-10"
+            onClick={() => setIsConfirmDeleteDialogOpen(true)}
+          >
             <Trash2 />
           </Button>
         </div>
@@ -168,6 +185,13 @@ export function ObjectivesView() {
         open={isEditDialogOpen}
         onOpenChange={handleEditDialogClose}
         taskToEdit={taskToEdit}
+      />
+      <ConfirmationDialog
+        open={isConfirmDeleteDialogOpen}
+        onOpenChange={setIsConfirmDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Are you sure?"
+        description={`This will permanently delete the "${objective.title}" objective and all of its tasks. This action cannot be undone.`}
       />
     </div>
   );

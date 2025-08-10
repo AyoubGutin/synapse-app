@@ -45,6 +45,7 @@ interface AppActions {
   updateTask: (updatedTask: Task) => void;
   deleteTask: (taskId: string) => void;
   updateObjective: (updatedObjective: Objective) => void;
+  deleteObjective: (objeciveId: string) => void;
 }
 
 /**
@@ -156,7 +157,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set((state) => {
       const newTasks = { ...state.tasks };
 
-      // Find all children and grandchildren recursively to delete them too
+      // Find all children and grandchildren via while loop to delete them too
       const tasksToDelete = new Set<string>([taskIdToDelete]);
       let childrenFound = true;
       while (childrenFound) {
@@ -193,6 +194,23 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       },
     }));
   },
+
+  // Delete an objective along with its tasks
+  deleteObjective: (objectiveId) =>
+    set((state) => {
+      const newObjectives = { ...state.objectives };
+      delete newObjectives[objectiveId];
+
+      // Filter out tasks associated with the objectives
+      const newTasks = Object.values(state.tasks).reduce((acc, task) => {
+        if (task.objectiveId !== objectiveId) {
+          acc[task.id] = task;
+        }
+        return acc;
+      }, {} as { [taskId: string]: Task });
+
+      return { objectives: newObjectives, tasks: newTasks };
+    }),
 
   // Update an existing objective
   updateObjective: (updatedObjective) =>
