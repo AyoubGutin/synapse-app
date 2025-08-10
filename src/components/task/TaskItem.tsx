@@ -39,6 +39,8 @@ interface TaskItemProps {
   expandedTasks: Set<string>;
   onEdit?: (task: Task) => void;
   onAddSubtask?: (parentId: string) => void;
+  onToggleCompletion?: (task: Task) => void;
+  isReadOnly?: boolean;
 }
 
 /**
@@ -48,6 +50,8 @@ interface TaskItemProps {
  * @param expandedTasks - set of task ids that are expanded
  * @param onEdit - Function called when user wants to edit a task
  * @param onAddSubtask - Functiion called when user wants to add a subtask.
+ * @param onToggleCompletion - Called when user is togglign a task
+ * @param isReadOnly - Boolean to check if a task is read only, which disables the actions - initally false
  * @returns
  */
 export function TaskItem({
@@ -56,9 +60,11 @@ export function TaskItem({
   expandedTasks,
   onEdit,
   onAddSubtask,
+  onToggleCompletion,
+  isReadOnly = false,
 }: TaskItemProps) {
   const tasks = useTasks();
-  const { toggleTaskStatus, deleteTask } = useAppStore();
+  const { deleteTask } = useAppStore();
 
   // -- Constants --
   const isExpanded = expandedTasks.has(task.id);
@@ -117,7 +123,8 @@ export function TaskItem({
           {/* Checkbox to toggle a tasks status */}
           <Checkbox
             checked={task.status === 'completed'}
-            onCheckedChange={() => toggleTaskStatus(task.id)}
+            onCheckedChange={() => onToggleCompletion?.(task)}
+            disabled={isReadOnly}
             className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600" // line through the title if checked
           />
           <span
@@ -206,6 +213,8 @@ export function TaskItem({
                 expandedTasks={expandedTasks}
                 onEdit={onEdit}
                 onAddSubtask={onAddSubtask}
+                onToggleCompletion={onToggleCompletion}
+                isReadOnly={isReadOnly}
               />
             ))}
           </ul>

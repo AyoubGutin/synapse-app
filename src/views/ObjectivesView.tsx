@@ -120,7 +120,11 @@ export function ObjectivesView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TaskList tasks={objectiveTasks} objectives={EMPTY_OBJECTIVES} />{' '}
+              <TaskList
+                tasks={objectiveTasks}
+                objectives={EMPTY_OBJECTIVES}
+                isReadOnly={true}
+              />{' '}
               {/* not working */}
             </CardContent>
           </Card>

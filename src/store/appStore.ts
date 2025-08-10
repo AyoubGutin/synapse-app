@@ -6,7 +6,7 @@
  *
  */
 import { create } from 'zustand';
-import type { Task } from '@/types/taskTypes';
+import type { Task, SubtaskCompletionPreference } from '@/types/taskTypes';
 import type { Objective } from '@/types/objectivesTypes';
 import type { ActivityItem, ActivityType } from '@/types/activityTypes';
 import { v4 as uuidv4 } from 'uuid';
@@ -25,6 +25,7 @@ interface AppState {
   showAddTaskDialog: boolean; // controls visibility of 'Add Task' dialog
   isSidebarCollapsed: boolean; // tracks collapsed/expanded state of the nav sidebar
   activityLog: ActivityItem[]; // log of recent user actions
+  subtaskCompletionPreference: SubtaskCompletionPreference;
 }
 
 /**
@@ -46,6 +47,10 @@ interface AppActions {
   deleteTask: (taskId: string) => void;
   updateObjective: (updatedObjective: Objective) => void;
   deleteObjective: (objeciveId: string) => void;
+  setSubtaskCompletionPreference: (
+    preference: SubtaskCompletionPreference
+  ) => void;
+  completeTaskWithSubtasks: (taskId: string) => void;
 }
 
 /**
@@ -114,6 +119,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   showAddTaskDialog: false,
   isSidebarCollapsed: true,
   activityLog: [],
+  subtaskCompletionPreference: 'ask',
 
   // --- State Actions ---
 
@@ -121,6 +127,8 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   setMainObjective: (objective) => set({ mainObjective: objective }),
   setShowAddTaskDialog: (show) => set({ showAddTaskDialog: show }),
   setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
+  setSubtaskCompletionPreference: (preference) =>
+    set({ subtaskCompletionPreference: preference }),
 
   // Toggle sidebar collapsed state by reversing current value
   toggleSidebar: () =>
@@ -234,6 +242,34 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     };
     set((state) => ({ activityLog: [newActivity, ...state.activityLog] }));
   },
+
+  completeTaskWithSubtasks: (taskId) =>
+    set((state) => {
+      const tasksToComplete = new Set<string>([taskId]);
+      let childrenFound = true;
+      while (childrenFound) {
+        childrenFound = false;
+        Object.values(state.tasks).forEach((task) => {
+          if (
+            task.parentId &&
+            tasksToComplete.has(task.parentId) &&
+            !tasksToComplete.has(task.id)
+          ) {
+            tasksToComplete.add(task.id);
+            childrenFound = true;
+          }
+        });
+      }
+
+      const newTasks = { ...state.tasks };
+      tasksToComplete.forEach((id) => {
+        if (newTasks[id]) {
+          newTasks[id] = { ...newTasks[id], status: 'completed' };
+        }
+      });
+
+      return { tasks: newTasks };
+    }),
 
   // Toggle completion status of a task and log the activity
   // Toggle completion status of a task and log the activity

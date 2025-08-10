@@ -11,8 +11,10 @@ import { TaskItem } from '@/components/task/TaskItem';
 import { Link } from 'react-router-dom';
 import { buttonVariants } from '../ui/button';
 import { Separator } from '../ui/separator';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTasks } from '@/hooks/use-normalise-store';
+import { CompleteSubtasksDialog } from '../modals/CompleteSubtasksDialog';
+import { useTaskCompletion } from '@/hooks/use-task-completion';
 
 /**
  * React function to render a Card component displaying user's current tasks due today, it is a widget on the dashboard
@@ -20,6 +22,7 @@ import { useTasks } from '@/hooks/use-normalise-store';
 export function TodaysAgendaWidget() {
   // get tasks from store
   const tasks = useTasks();
+  const { handleToggleCompletion, completionDialogProps } = useTaskCompletion();
 
   // -- states --
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
@@ -30,7 +33,7 @@ export function TodaysAgendaWidget() {
     (task) => task.dueDate === today && task.status !== 'completed'
   );
 
-  const handleExpand = (taskId: string) => {
+  const handleExpand = useCallback((taskId: string) => {
     setExpandedTasks((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(taskId)) {
@@ -40,38 +43,43 @@ export function TodaysAgendaWidget() {
       }
       return newSet;
     });
-  };
+  }, []);
 
   return (
-    <Card className="hover:translate-y-[-3px] transition-transform duration-200">
-      <CardHeader>
-        <CardTitle>today's agenda:</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {todaysTasks.length > 0 ? (
-          <ul className="-mx-3">
-            {todaysTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onExpand={handleExpand}
-                expandedTasks={expandedTasks}
-              />
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground py-4">
-            no tasks due today.
-          </p>
-        )}
+    <>
+      <Card className="hover:translate-y-[-3px] transition-transform duration-200">
+        <CardHeader>
+          <CardTitle>today's agenda:</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {todaysTasks.length > 0 ? (
+            <ul className="-mx-3">
+              {todaysTasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onExpand={handleExpand}
+                  expandedTasks={expandedTasks}
+                  onToggleCompletion={handleToggleCompletion}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4">
+              no tasks due today.
+            </p>
+          )}
 
-        <Separator className="bg-accent" />
-        <div className="mt-2">
-          <Link to="/tasks" className={buttonVariants({ variant: 'link' })}>
-            view all your tasks.
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+          <Separator className="bg-accent" />
+          <div className="mt-2">
+            <Link to="/tasks" className={buttonVariants({ variant: 'link' })}>
+              view all your tasks.
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      <CompleteSubtasksDialog {...completionDialogProps} />
+    </>
   );
 }

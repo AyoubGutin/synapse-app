@@ -19,6 +19,8 @@ interface TaskListProps {
   objectives: Objective[];
   onEdit?: (task: Task) => void;
   onAddSubtask?: (parentId: string) => void;
+  onToggleCompletion?: (task: Task) => void;
+  isReadOnly?: boolean;
 }
 
 // -- Helper Functions --
@@ -44,6 +46,8 @@ const ObjectiveFolder = ({ title, taskCount, isOpen, onToggle }: any) => (
  * @param objectives - The objectives a user has
  * @param onEdit - Function called when a user wants to edit a task, this is passed into TaskItem
  * @param onAddSubtask - Function called when user wants to add a subtask
+ * @param onToggleCompletion - Function called when the user toggles a task (checks it)
+ * @param isReadOnly - Check if a task item is ready only -> actions are blocked
  * @returns
  */
 export function TaskList({
@@ -51,6 +55,8 @@ export function TaskList({
   objectives,
   onEdit,
   onAddSubtask,
+  onToggleCompletion,
+  isReadOnly = false,
 }: TaskListProps) {
   // -- States --
   const [openObjectives, setOpenObjectives] = useState<Set<string>>(new Set());
@@ -106,6 +112,8 @@ export function TaskList({
                   expandedTasks={expandedTasks}
                   onEdit={onEdit}
                   onAddSubtask={onAddSubtask}
+                  onToggleCompletion={onToggleCompletion}
+                  isReadOnly={isReadOnly}
                 />
               ))}
             </ul>
@@ -149,6 +157,8 @@ export function TaskList({
                     expandedTasks={expandedTasks}
                     onEdit={onEdit}
                     onAddSubtask={onAddSubtask}
+                    onToggleCompletion={onToggleCompletion}
+                    isReadOnly={isReadOnly}
                   />
                 ))}
               </ul>

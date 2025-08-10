@@ -10,6 +10,8 @@ import { TaskList } from '@/components/task/TaskList';
 import { EditTaskDialog } from '@/components/modals/EditTaskDialog';
 import { AddTaskDialog } from '@/components/modals/AddTaskDialog';
 import { useObjectives, useTasks } from '@/hooks/use-normalise-store';
+import { CompleteSubtasksDialog } from '@/components/modals/CompleteSubtasksDialog';
+import { useTaskCompletion } from '@/hooks/use-task-completion';
 
 type FilterValues = {
   searchTerm: string;
@@ -18,10 +20,10 @@ type FilterValues = {
 };
 
 export function AllTasksView() {
-  // Global state
+  // Global
   const tasks = useTasks();
   const objectives = useObjectives();
-
+  const { handleToggleCompletion, completionDialogProps } = useTaskCompletion();
   const { setShowAddTaskDialog, showAddTaskDialog } = useAppStore();
 
   // -- Local state --
@@ -37,7 +39,7 @@ export function AllTasksView() {
   >();
   const [parentTaskTitle, setParentTaskTitle] = useState<string | undefined>();
 
-  // -- Helper Functions --
+  // -- Handlers --
   const handleFiltersChange = useCallback((newFilters: FilterValues) => {
     setFilters(newFilters);
   }, []);
@@ -54,13 +56,13 @@ export function AllTasksView() {
     setShowAddTaskDialog(true);
   }, []);
 
-  const handleOpenAddTaskDialog = (isOpen: boolean) => {
+  const handleOpenAddTaskDialog = useCallback((isOpen: boolean) => {
     if (!isOpen) {
       setParentIdForNewTask(undefined);
       setParentTaskTitle(undefined);
     }
     setShowAddTaskDialog(isOpen);
-  };
+  }, []);
 
   const handleEditDialogClose = useCallback((isOpen: boolean) => {
     if (!isOpen) {
@@ -99,12 +101,14 @@ export function AllTasksView() {
         objectives={objectives}
         onEdit={handleEditTask}
         onAddSubtask={handleAddSubtask}
+        onToggleCompletion={handleToggleCompletion}
       />
 
       <AddTaskDialog
         open={showAddTaskDialog}
         onOpenChange={handleOpenAddTaskDialog}
         parentId={parentIdForNewTask}
+        parentTaskTitle={parentTaskTitle}
       />
 
       <EditTaskDialog
@@ -112,6 +116,7 @@ export function AllTasksView() {
         onOpenChange={handleEditDialogClose}
         taskToEdit={taskToEdit}
       />
+      <CompleteSubtasksDialog {...completionDialogProps} />
     </div>
   );
 }

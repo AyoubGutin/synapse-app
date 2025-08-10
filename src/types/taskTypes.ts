@@ -26,3 +26,5 @@ export interface TaskFormData {
   tags: string;
   parentId?: string;
 }
+
+export type SubtaskCompletionPreference = 'ask' | 'always' | 'never';
