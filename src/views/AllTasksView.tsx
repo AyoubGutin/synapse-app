@@ -18,8 +18,16 @@ type FilterValues = {
 
 export function AllTasksView() {
   // Global state
-  const { tasks, objectives, setShowAddTaskDialog, showAddTaskDialog } =
-    useAppStore();
+  const tasksObject = useAppStore((state) => state.tasks);
+  const tasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
+
+  const objectivesObject = useAppStore((state) => state.objectives);
+  const objectives = useMemo(
+    () => Object.values(objectivesObject),
+    [objectivesObject]
+  );
+
+  const { setShowAddTaskDialog, showAddTaskDialog } = useAppStore();
 
   // -- Local state --
   const [filters, setFilters] = useState({
@@ -34,19 +42,21 @@ export function AllTasksView() {
   const handleFiltersChange = useCallback((newFilters: FilterValues) => {
     setFilters(newFilters);
   }, []);
-  const handleEditTask = (task: Task) => {
+
+  const handleEditTask = useCallback((task: Task) => {
     setTaskToEdit(task);
     setisEditDialogOpen(true);
-  };
-  const handleEditDialogClose = (isOpen: boolean) => {
+  }, []);
+
+  const handleEditDialogClose = useCallback((isOpen: boolean) => {
     if (!isOpen) {
       setTaskToEdit(null);
     }
     setisEditDialogOpen(isOpen);
-  };
+  }, []);
 
-  const tasksByObjective = useMemo(() => {
-    const filtered = tasks.filter((task) => {
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
       const matchesSearch = task.title
         .toLowerCase()
         .includes(filters.searchTerm.toLowerCase());
@@ -57,13 +67,6 @@ export function AllTasksView() {
         task.priority === filters.priorityFilter;
       return matchesSearch && matchesStatus && matchesPriority;
     });
-
-    return filtered.reduce((acc, task) => {
-      const key = task.objectiveId || 'unassigned';
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(task);
-      return acc;
-    }, {} as Record<string, Task[]>);
   }, [tasks, filters]);
 
   return (
@@ -78,7 +81,7 @@ export function AllTasksView() {
       <TaskStats />
       <TaskFilters onFiltersChange={handleFiltersChange} />
       <TaskList
-        tasksByObjective={tasksByObjective}
+        tasks={filteredTasks}
         objectives={objectives}
         onEdit={handleEditTask}
       />

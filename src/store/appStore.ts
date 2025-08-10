@@ -19,8 +19,8 @@ import { v4 as uuidv4 } from 'uuid';
  * Includes arrays of tasks and objective, as well as UI state variables
  */
 interface AppState {
-  tasks: Task[];
-  objectives: Objective[];
+  tasks: { [taskId: string]: Task };
+  objectives: { [objectiveId: string]: Objective };
   mainObjective: string; // text currently in main objective input field
   showAddTaskDialog: boolean; // controls visibility of 'Add Task' dialog
   isSidebarCollapsed: boolean; // tracks collapsed/expanded state of the nav sidebar
@@ -57,8 +57,27 @@ interface AppActions {
 export const useAppStore = create<AppState & AppActions>((set, get) => ({
   // --- Initial States ---
   // These would be fetched from a db instead
-  tasks: [
-    {
+  objectives: {
+    'f3b2a1c9-8e7d-4f6c-8a2b-1e988c7b6a5d': {
+      // ID is the key
+      id: 'f3b2a1c9-8e7d-4f6c-8a2b-1e988c7b6a5d',
+      title: 'Synapse App',
+      progress: 70,
+      color: '#e0aaff',
+    },
+    'f3b2a1676c9-8e7d-4f6c-8a2b-1e9d8c7b6a5d': {
+      // ID is the key
+      id: 'f3b2a1676c9-8e7d-4f6c-8a2b-1e9d8c7b6a5d',
+      title: 'Marketing Website',
+      progress: 45,
+      color: '#c77dff',
+    },
+  },
+
+  tasks: {
+    // This is now an object, not an array
+    'd9a8b5c0-4f6e-4b8a-82f3-1c9d0e7a6b5c': {
+      // ID is the key
       id: 'd9a8b5c0-4f6e-4b8a-82f3-1c9d0e7a6b5c',
       title: 'Learn French Grammar',
       description: 'Master French grammar fundamentals',
@@ -66,39 +85,29 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       priority: 'high',
       dueDate: '2025-08-15',
       tags: ['learning', 'french'],
-      subtasks: [
-        {
-          id: 'e1c7b4a2-9f8e-4c6d-8a3b-2f9e1d8c5b7a',
-          title: 'Study verb conjugations',
-          status: 'in-progress',
-          priority: 'medium',
-        },
-      ],
+      objectiveId: 'f3b2a1c9-8e7d-4f6c-8a2b-1e988c7b6a5d',
+      parentId: undefined,
     },
-    {
-      id: 'f3b2a1c9-8e7d-4f6c-8a2b-1e9d8c7b6a5d',
-      title: 'Build Marketing Website',
+    'dfij35c0-4ljf6e-4blja-8289hjf3-1c9ljb5c': {
+      // ID is the key
+      id: 'dfij35c0-4ljf6e-4blja-8289hjf3-1c9ljb5c',
+      title: 'Study verb conjugations',
+      status: 'in-progress',
+      priority: 'medium',
+      dueDate: '2025-08-10',
+      objectiveId: 'f3b2a1c9-8e7d-4f6c-8a2b-1e988c7b6a5d',
+      parentId: 'd9a8b5c0-4f6e-4b8a-82f3-1c9d0e7a6b5c',
+    },
+    '4b8a-82f3-1c9d0e7a6b5c-4b8a-82f3-1c9d0e7a6b5c': {
+      // ID is the key
+      id: '4b8a-82f3-1c9d0e7a6b5c-4b8a-82f3-1c9d0e7a6b5c',
+      title: 'Build marketing website',
       status: 'completed',
       priority: 'high',
-      dueDate: '2025-08-10',
-      tags: ['work', 'development'],
-      subtasks: [],
+      objectiveId: 'f3b2a1676c9-8e7d-4f6c-8a2b-1e9d8c7b6a5d',
+      parentId: undefined,
     },
-  ],
-  objectives: [
-    {
-      id: 'f3b2a1c9-8e7d-4f6c-8a2b-1e988c7b6a5d',
-      title: 'Synapse App',
-      progress: 70,
-      color: '#e0aaff',
-    },
-    {
-      id: 'f3b2a1676c9-8e7d-4f6c-8a2b-1e9d8c7b6a5d',
-      title: 'Marketing Website',
-      progress: 45,
-      color: '#c77dff',
-    },
-  ],
+  },
   mainObjective: '',
   expandedTasks: new Set(),
   showAddTaskDialog: false,
@@ -119,82 +128,82 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     })),
 
   // Add a new task to tasks array
-  addTask: (newTask) =>
+  addTask: (newTask) => {
+    const newId = uuidv4();
     set((state) => ({
       // create new array with previous and new task appended w/ unique id
-      tasks: [...state.tasks, { ...newTask, id: uuidv4() }],
-    })),
+      tasks: {
+        ...state.tasks,
+        [newId]: { ...newTask, id: newId },
+      },
+    }));
+  },
 
   // Update a exising task by creating a new array, replacing old task with updated one
   updateTask: (updatedTask) =>
-    set((state) => {
-      const updateRecursively = (tasks: Task[]): Task[] =>
-        tasks.map((task) => {
-          if (task.id === updatedTask.id) {
-            // if id matches a task, merge the task object with the uodated task
-            return { ...task, ...updatedTask };
-          }
-          if (task.subtasks?.length) {
-            // if a task has subtasks, apply the update recursively to the nested tasks
-            const newSubtasks = updateRecursively(task.subtasks);
-            if (newSubtasks !== task.subtasks) {
-              return { ...task, subtasks: newSubtasks };
-            }
-          }
-          return task;
-        });
-
-      return { tasks: updateRecursively(state.tasks) };
-    }),
-
-  updateObjective: (updatedObjective) =>
     set((state) => ({
-      objectives: state.objectives.map((obj) =>
-        obj.id === updatedObjective.id ? updatedObjective : obj
-      ),
+      tasks: {
+        ...state.tasks,
+        [updatedTask.id]: {
+          ...state.tasks[updatedTask.id], // Keep existing properties
+          ...updatedTask, // Overwrite with new ones
+        },
+      },
     })),
 
   // Delete a task from the tasks array, by making a new array filtering out old id
-  deleteTask: (taskId) =>
+  deleteTask: (taskIdToDelete) =>
     set((state) => {
-      const deleteRecursively = (tasks: Task[]): Task[] => {
-        // Check if the task to be deleted exists at the current level.
-        const taskExistsAtThisLevel = tasks.some((task) => task.id === taskId); // .some checks if at least one item in array
+      const newTasks = { ...state.tasks };
 
-        let newTasks = tasks; // this will hold the updated task array
-
-        // If the task is at this level, filter it out.
-        if (taskExistsAtThisLevel) {
-          newTasks = tasks.filter((task) => task.id !== taskId);
-        }
-
-        // Now, map over the list to check subtasks.
-        return newTasks.map((task) => {
-          // If the task has subtasks, we need to recurse.
-          if (task.subtasks) {
-            const newSubtasks = deleteRecursively(task.subtasks);
-
-            // This is the key: only create a new parent object if the subtasks array has actually changed.
-            if (newSubtasks.length !== task.subtasks.length) {
-              return { ...task, subtasks: newSubtasks };
-            }
+      // Find all children and grandchildren recursively to delete them too
+      const tasksToDelete = new Set<string>([taskIdToDelete]);
+      let childrenFound = true;
+      while (childrenFound) {
+        childrenFound = false;
+        Object.values(newTasks).forEach((task) => {
+          if (
+            task.parentId &&
+            tasksToDelete.has(task.parentId) &&
+            !tasksToDelete.has(task.id)
+          ) {
+            tasksToDelete.add(task.id);
+            childrenFound = true;
           }
-          // If no changes occurred in the subtasks, return the original task object.
-          return task;
         });
-      };
+      }
 
-      return { tasks: deleteRecursively(state.tasks) };
+      tasksToDelete.forEach((id) => delete newTasks[id]);
+
+      return { tasks: newTasks };
     }),
 
   // Add a new objective to the objectives array
-  addObjective: (newObjective) =>
+  addObjective: (newObjective) => {
+    const newId = uuidv4();
     set((state) => ({
-      objectives: [
+      objectives: {
         ...state.objectives,
-        // Default value for progress and colour
-        { ...newObjective, id: uuidv4(), progress: 0, color: '#e0aaff' },
-      ],
+        [newId]: {
+          ...newObjective,
+          id: newId,
+          progress: 0,
+          color: '#e0aaff',
+        },
+      },
+    }));
+  },
+
+  // Update an existing objective
+  updateObjective: (updatedObjective) =>
+    set((state) => ({
+      objectives: {
+        ...state.objectives,
+        [updatedObjective.id]: {
+          ...state.objectives[updatedObjective.id],
+          ...updatedObjective,
+        },
+      },
     })),
 
   // Add a new entry to the activity log array
@@ -209,21 +218,22 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   },
 
   // Toggle completion status of a task and log the activity
+  // Toggle completion status of a task and log the activity
   toggleTaskStatus: (taskId) => {
-    const task = get().tasks.find((t) => t.id === taskId);
+    const task = get().tasks[taskId];
+    if (!task) return;
 
-    if (task && task.status !== 'completed') {
+    if (task.status !== 'completed') {
       get().logActivity('TASK_COMPLETED', `Completed task: "${task.title}"`);
     }
     set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              status: task.status === 'completed' ? 'todo' : 'completed',
-            }
-          : task
-      ),
+      tasks: {
+        ...state.tasks,
+        [taskId]: {
+          ...state.tasks[taskId],
+          status: task.status === 'completed' ? 'todo' : 'completed',
+        },
+      },
     }));
   },
 }));

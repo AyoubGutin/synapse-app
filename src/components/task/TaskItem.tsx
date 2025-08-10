@@ -29,20 +29,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/store/appStore';
+import { useMemo } from 'react';
 
 // -- Type Definitions --
 interface TaskItemProps {
   task: Task;
-  isSubtask?: boolean;
-  onExpand?: (taskId: string) => void;
-  isExpanded?: boolean;
-  onEdit?: (task: Task) => void;
+  onExpand: (taskId: string) => void;
+  isExpanded: boolean;
+  onEdit: (task: Task) => void;
 }
 
 /**
  * React function to render a task item with its subtasks, as a list element
  * @param task - A Task object, which holds information about a task entitiy
- * @param isSubtask - Boolean to check if a task is a subtask
  * @param onExpand - Function that is called when the user expands a task item to show subtasks
  * @param isExpanded - Boolean to check if a task item is expanded
  * @param onEdit - Function called when user wants to edit a task
@@ -50,16 +49,21 @@ interface TaskItemProps {
  */
 export function TaskItem({
   task,
-  isSubtask,
   onExpand,
   isExpanded,
   onEdit,
 }: TaskItemProps) {
   // -- States --
+  const allTasks = useAppStore((state) => state.tasks);
   const { toggleTaskStatus, deleteTask } = useAppStore();
 
   // -- Constants --
-  const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+  const subtasks = useMemo(
+    () => Object.values(allTasks).filter((sub) => sub.parentId === task.id),
+    [allTasks, task.id]
+  );
+
+  const hasSubtasks = subtasks.length > 0;
 
   // -- Helper Functions --
   const getPriorityColour = (priority: TaskPriority) => {
@@ -85,44 +89,41 @@ export function TaskItem({
     <li
       className={cn(
         'border-b-3 border-muted transition-all duration-300',
-        isSubtask ? 'ml-8 border-none' : ''
+        task.parentId ? 'ml-8 border-none' : '' // style if its a child
       )}
     >
       <div className="group flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg">
         <div className="flex items-center gap-3 flex-1">
           <div className="w-6 h-6 flex items-center justify-center">
-            {/* If not a subtask : */}
-            {!isSubtask &&
-              // and has subtasks
-              (hasSubtasks && onExpand ? (
-                // Render a button with a toggle
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onExpand(task.id);
-                  }}
-                  className="p-0 h-auto text-muted-foreground hover:text-foreground"
-                >
-                  <ChevronRight
-                    size={16}
-                    className={`transition-transform duration-200 ${
-                      isExpanded ? 'rotate-90' : ''
-                    }`}
-                  />
-                </Button>
-              ) : (
-                // If no subtasks, render a plus button that appears on hover, to add a task - add task not implemeneted yet
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAddSubtask}
-                  className="p-0 h-auto text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Plus size={16} />
-                </Button>
-              ))}
+            {/* If a subtask : */}
+            {hasSubtasks ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExpand(task.id);
+                }}
+                className="p-0 h-auto text-muted-foreground hover:text-foreground"
+              >
+                <ChevronRight
+                  size={16}
+                  className={`transition-transform duration-200 ${
+                    isExpanded ? 'rotate-90' : ''
+                  }`}
+                />
+              </Button>
+            ) : (
+              // If no subtasks, render a plus button that appears on hover, to add a task - add task not implemeneted yet
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAddSubtask}
+                className="p-0 h-auto text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Plus size={16} />
+              </Button>
+            )}
           </div>
           {/* Checkbox to toggle a tasks status */}
           <Checkbox
@@ -202,13 +203,12 @@ export function TaskItem({
           }`}
         >
           <ul className="ml-11 overflow-hidden">
-            {task.subtasks!.map((subtask) => (
+            {subtasks.map((subtask) => (
               <TaskItem
                 key={subtask.id}
                 task={subtask}
-                isSubtask={true}
                 onExpand={onExpand}
-                isExpanded={false}
+                isExpanded={isExpanded}
                 onEdit={onEdit}
               />
             ))}

@@ -15,7 +15,7 @@ import { useCallback, useState } from 'react';
 
 // -- Type Definitions --
 interface TaskListProps {
-  tasksByObjective: Record<string, Task[]>;
+  tasks: Task[];
   objectives: Objective[];
   onEdit: (task: Task) => void;
 }
@@ -39,16 +39,12 @@ const ObjectiveFolder = ({ title, taskCount, isOpen, onToggle }: any) => (
 
 /**
  * React function to render a list of tasks
- * @param tasksByObjective - Object of tasks, mapped to objectives (keys)
+ * @param tasks - tasks to be displayed
  * @param objectives - The objectives a user has
  * @param onEdit - Function called when a user wants to edit a task, this is passed into TaskItem
  * @returns
  */
-export function TaskList({
-  tasksByObjective,
-  objectives,
-  onEdit,
-}: TaskListProps) {
+export function TaskList({ tasks, objectives, onEdit }: TaskListProps) {
   // -- States --
   const [openObjectives, setOpenObjectives] = useState<Set<string>>(new Set());
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
@@ -72,7 +68,9 @@ export function TaskList({
   }, []);
 
   // -- Constants --
-  const unassignedTasks = tasksByObjective['unassigned'] || [];
+  const unassignedTasks = tasks.filter(
+    (task) => !task.objectiveId && !task.parentId // if not child + no objective id
+  );
 
   return (
     <div className="rounded-lg border-accent bg-card p-2 space-y-2">
@@ -109,15 +107,19 @@ export function TaskList({
 
       {/* Sections for each objective */}
       {objectives.map((obj) => {
-        const objectiveTasks = tasksByObjective[obj.id] || [];
-        if (objectiveTasks.length === 0) return null;
+        // Filter for top-level tasks belonging to this objective
+        const objectiveTopLevelTasks = tasks.filter(
+          (task) => task.objectiveId === obj.id && !task.parentId
+        );
+
+        if (objectiveTopLevelTasks.length === 0) return null;
 
         const isOpen = openObjectives.has(obj.id);
         return (
           <div key={obj.id}>
             <ObjectiveFolder
               title={obj.title}
-              taskCount={objectiveTasks.length}
+              taskCount={objectiveTopLevelTasks.length}
               isOpen={isOpen}
               onToggle={() => toggleObjective(obj.id)}
             />
@@ -127,7 +129,7 @@ export function TaskList({
               }`}
             >
               <ul className="overflow-hidden pl-6">
-                {objectiveTasks.map((task) => (
+                {objectiveTopLevelTasks.map((task) => (
                   <TaskItem
                     key={task.id}
                     task={task}

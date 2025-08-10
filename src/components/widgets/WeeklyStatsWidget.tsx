@@ -15,7 +15,8 @@ import { useAppStore } from '@/store/appStore';
  */
 export function WeeklyStatsWidget() {
   // Get tasks from global state
-  const tasks = useAppStore((state) => state.tasks);
+  const tasksObject = useAppStore((state) => state.tasks);
+  const tasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
 
   // -- Helper function --
   // calc stats (completed this weeks, added this week)

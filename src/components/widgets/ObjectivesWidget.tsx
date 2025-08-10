@@ -6,7 +6,7 @@
  */
 
 // -- Imports --
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Progress } from '../ui/progress';
 import { useAppStore } from '@/store/appStore';
@@ -21,7 +21,11 @@ import { Link } from 'react-router-dom';
  */
 export function ObjectivesWidget() {
   // get all the user's objectives
-  const { objectives } = useAppStore();
+  const objectivesObject = useAppStore((state) => state.objectives);
+  const objectives = useMemo(
+    () => Object.values(objectivesObject),
+    [objectivesObject]
+  );
 
   // -- states --
   const [isAddObjectiveOpen, setIsAddObjectiveOpen] = useState(false);

@@ -12,8 +12,8 @@ export interface Task {
   priority: TaskPriority;
   dueDate?: string;
   tags?: string[];
-  subtasks?: Omit<Task, 'subtasks' | 'description' | 'tags' | 'dueDate'>[];
   objectiveId?: string;
+  parentId?: string;
 }
 
 // Define the shape of the form data
@@ -24,4 +24,5 @@ export interface TaskFormData {
   priority: TaskPriority;
   objectiveId: string;
   tags: string;
+  parentId?: string;
 }

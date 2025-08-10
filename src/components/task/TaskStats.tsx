@@ -14,7 +14,8 @@ import { useAppStore } from '@/store/appStore';
  * @returns
  */
 export function TaskStats() {
-  const { tasks } = useAppStore(); // get tasks from store
+  const tasksObject = useAppStore((state) => state.tasks);
+  const tasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
 
   // -- Helper Function --
   // -- calulates stats for different states and cache values

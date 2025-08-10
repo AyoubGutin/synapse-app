@@ -18,28 +18,52 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { TaskList } from '@/components/task/TaskList';
-import { useMemo } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { Trash2 } from 'lucide-react';
+import type { Task } from '@/types/taskTypes';
+import { TaskList } from '@/components/task/TaskList';
+import { EditTaskDialog } from '@/components/modals/EditTaskDialog';
+
+const EMPTY_OBJECTIVES: [] = [];
 
 export function ObjectivesView() {
   const { objectiveId } = useParams<{ objectiveId: string }>();
   const navigate = useNavigate();
 
-  const { objectives, tasks, updateObjective } = useAppStore();
+  const {
+    objectives: objectivesObject,
+    tasks: tasksObject,
+    updateObjective,
+  } = useAppStore();
 
-  const objective = objectives.find((obj) => obj.id === objectiveId);
+  const objective = objectivesObject[objectiveId || ''];
+  const allTasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
+
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const handleEditTask = useCallback((task: Task) => {
+    setTaskToEdit(task);
+    setIsEditDialogOpen(true);
+  }, []);
+
+  const handleEditDialogClose = useCallback((isOpen: boolean) => {
+    if (!isOpen) {
+      setTaskToEdit(null);
+    }
+    setIsEditDialogOpen(isOpen);
+  }, []);
 
   const objectiveTasks = useMemo(() => {
-    return tasks.filter((task) => task.objectiveId === objectiveId);
-  }, [tasks, objectiveId]);
+    return allTasks.filter((task) => task.objectiveId === objectiveId);
+  }, [allTasks, objectiveId]);
 
   if (!objective) {
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold">objective not found.</h1>
         <p className="text-muted-foreground">
-          The objective you're looking for does not exist
+          The objective you're looking for does not exist.
         </p>
         <Button onClick={() => navigate('/')} className="mt-4">
           go back to dashboard.
@@ -47,7 +71,6 @@ export function ObjectivesView() {
       </div>
     );
   }
-
   const handleTitleChange = (newTitle: string) => {
     updateObjective({ ...objective, title: newTitle });
   };
@@ -87,7 +110,11 @@ export function ObjectivesView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>task list placeholder</p>
+              <TaskList
+                tasks={objectiveTasks}
+                objectives={EMPTY_OBJECTIVES}
+                onEdit={handleEditTask}
+              />
             </CardContent>
           </Card>
           <Card>
@@ -113,7 +140,7 @@ export function ObjectivesView() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Objective Color</Label>
+                <Label>Objective Colour</Label>
                 {/* color picker placeholder */}
                 <div className="flex gap-2">
                   {['#e0aaff', '#c77dff', '#9d4edd', '#7b2cbf'].map((color) => (
@@ -139,6 +166,11 @@ export function ObjectivesView() {
           </Card>
         </div>
       </div>
+      <EditTaskDialog
+        open={isEditDialogOpen}
+        onOpenChange={handleEditDialogClose}
+        taskToEdit={taskToEdit}
+      />
     </div>
   );
 }
