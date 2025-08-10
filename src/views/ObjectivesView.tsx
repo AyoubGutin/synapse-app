@@ -23,6 +23,7 @@ import { Trash2 } from 'lucide-react';
 import type { Task } from '@/types/taskTypes';
 import { TaskList } from '@/components/task/TaskList';
 import { EditTaskDialog } from '@/components/modals/EditTaskDialog';
+import { useTasks } from '@/hooks/use-normalise-store';
 
 const EMPTY_OBJECTIVES: [] = [];
 
@@ -30,14 +31,11 @@ export function ObjectivesView() {
   const { objectiveId } = useParams<{ objectiveId: string }>();
   const navigate = useNavigate();
 
-  const {
-    objectives: objectivesObject,
-    tasks: tasksObject,
-    updateObjective,
-  } = useAppStore();
+  const tasks = useTasks();
+
+  const { objectives: objectivesObject, updateObjective } = useAppStore();
 
   const objective = objectivesObject[objectiveId || ''];
-  const allTasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
 
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -55,8 +53,8 @@ export function ObjectivesView() {
   }, []);
 
   const objectiveTasks = useMemo(() => {
-    return allTasks.filter((task) => task.objectiveId === objectiveId);
-  }, [allTasks, objectiveId]);
+    return tasks.filter((task) => task.objectiveId === objectiveId);
+  }, [tasks, objectiveId]);
 
   if (!objective) {
     return (

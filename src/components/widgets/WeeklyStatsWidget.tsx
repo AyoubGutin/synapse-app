@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, PlusCircle } from 'lucide-react';
-import { useAppStore } from '@/store/appStore';
+import { useTasks } from '@/hooks/use-normalise-store';
 
 /**
  * React function rendering a card component showing weekly stats for a suer
@@ -15,8 +15,7 @@ import { useAppStore } from '@/store/appStore';
  */
 export function WeeklyStatsWidget() {
   // Get tasks from global state
-  const tasksObject = useAppStore((state) => state.tasks);
-  const tasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
+  const tasks = useTasks();
 
   // -- Helper function --
   // calc stats (completed this weeks, added this week)

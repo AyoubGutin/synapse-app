@@ -6,14 +6,14 @@
  */
 
 // -- Imports --
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Progress } from '../ui/progress';
-import { useAppStore } from '@/store/appStore';
 import { Plus } from 'lucide-react';
 import { AddObjectiveDialog } from '../modals/AddObjectiveDialog';
 import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
+import { useObjectives } from '@/hooks/use-normalise-store';
 
 /**
  * React function displays user's objectives in a Card component. It is a widget in the dashboard
@@ -21,11 +21,7 @@ import { Link } from 'react-router-dom';
  */
 export function ObjectivesWidget() {
   // get all the user's objectives
-  const objectivesObject = useAppStore((state) => state.objectives);
-  const objectives = useMemo(
-    () => Object.values(objectivesObject),
-    [objectivesObject]
-  );
+  const objectives = useObjectives();
 
   // -- states --
   const [isAddObjectiveOpen, setIsAddObjectiveOpen] = useState(false);

@@ -5,21 +5,20 @@
  */
 
 // -- Imports -
-import { useAppStore } from '@/store/appStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskItem } from '@/components/task/TaskItem';
 import { Link } from 'react-router-dom';
 import { buttonVariants } from '../ui/button';
 import { Separator } from '../ui/separator';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
+import { useTasks } from '@/hooks/use-normalise-store';
 
 /**
  * React function to render a Card component displaying user's current tasks due today, it is a widget on the dashboard
  */
 export function TodaysAgendaWidget() {
   // get tasks from store
-  const tasksObject = useAppStore((state) => state.tasks);
-  const tasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
+  const tasks = useTasks();
 
   // -- states --
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());

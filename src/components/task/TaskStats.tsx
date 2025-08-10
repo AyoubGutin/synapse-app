@@ -7,15 +7,14 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ListTodo, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { useAppStore } from '@/store/appStore';
+import { useTasks } from '@/hooks/use-normalise-store';
 
 /**
  * React function to render Cards for different statistics relating to the user's tasks.
  * @returns
  */
 export function TaskStats() {
-  const tasksObject = useAppStore((state) => state.tasks);
-  const tasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
+  const tasks = useTasks();
 
   // -- Helper Function --
   // -- calulates stats for different states and cache values

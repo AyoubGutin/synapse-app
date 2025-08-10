@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/store/appStore';
 import { useMemo } from 'react';
+import { useTasks } from '@/hooks/use-normalise-store';
 
 // -- Type Definitions --
 interface TaskItemProps {
@@ -53,14 +54,13 @@ export function TaskItem({
   isExpanded,
   onEdit,
 }: TaskItemProps) {
-  // -- States --
-  const allTasks = useAppStore((state) => state.tasks);
+  const tasks = useTasks();
   const { toggleTaskStatus, deleteTask } = useAppStore();
 
   // -- Constants --
   const subtasks = useMemo(
-    () => Object.values(allTasks).filter((sub) => sub.parentId === task.id),
-    [allTasks, task.id]
+    () => tasks.filter((sub) => sub.parentId === task.id),
+    [tasks, task.id]
   );
 
   const hasSubtasks = subtasks.length > 0;

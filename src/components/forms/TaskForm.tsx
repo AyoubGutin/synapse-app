@@ -15,8 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { TaskFormData } from '@/types/taskTypes';
-import { useAppStore } from '@/store/appStore';
-import { useMemo } from 'react';
+import { useObjectives } from '@/hooks/use-normalise-store';
 
 // Define the props for the form component
 interface TaskFormProps {
@@ -30,11 +29,7 @@ interface TaskFormProps {
  * @param setFormData - Updates the formData state
  */
 export function TaskForm({ formData, setFormData }: TaskFormProps) {
-  const objectivesObject = useAppStore((state) => state.objectives);
-  const objectives = useMemo(
-    () => Object.values(objectivesObject),
-    [objectivesObject]
-  );
+  const objectives = useObjectives();
 
   // helper function for input changes
   const handleInputChange = (
@@ -107,7 +102,7 @@ export function TaskForm({ formData, setFormData }: TaskFormProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="unassigned">none (quick task).</SelectItem>
-            {Object.values(objectives).map((obj) => (
+            {objectives.map((obj) => (
               <SelectItem key={obj.id} value={obj.id}>
                 {obj.title}
               </SelectItem>

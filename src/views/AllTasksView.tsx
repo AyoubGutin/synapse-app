@@ -9,6 +9,7 @@ import { TaskFilters } from '@/components/task/TaskFilters';
 import { TaskList } from '@/components/task/TaskList';
 import { EditTaskDialog } from '@/components/modals/EditTaskDialog';
 import { AddTaskDialog } from '@/components/modals/AddTaskDialog';
+import { useObjectives, useTasks } from '@/hooks/use-normalise-store';
 
 type FilterValues = {
   searchTerm: string;
@@ -18,14 +19,8 @@ type FilterValues = {
 
 export function AllTasksView() {
   // Global state
-  const tasksObject = useAppStore((state) => state.tasks);
-  const tasks = useMemo(() => Object.values(tasksObject), [tasksObject]);
-
-  const objectivesObject = useAppStore((state) => state.objectives);
-  const objectives = useMemo(
-    () => Object.values(objectivesObject),
-    [objectivesObject]
-  );
+  const tasks = useTasks();
+  const objectives = useObjectives();
 
   const { setShowAddTaskDialog, showAddTaskDialog } = useAppStore();
 
