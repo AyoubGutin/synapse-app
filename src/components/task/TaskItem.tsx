@@ -36,34 +36,41 @@ import { useTasks } from '@/hooks/use-normalise-store';
 interface TaskItemProps {
   task: Task;
   onExpand: (taskId: string) => void;
-  isExpanded: boolean;
-  onEdit: (task: Task) => void;
+  expandedTasks: Set<string>;
+  onEdit?: (task: Task) => void;
+  onAddSubtask?: (parentId: string) => void;
 }
 
 /**
  * React function to render a task item with its subtasks, as a list element
  * @param task - A Task object, which holds information about a task entitiy
  * @param onExpand - Function that is called when the user expands a task item to show subtasks
- * @param isExpanded - Boolean to check if a task item is expanded
+ * @param expandedTasks - set of task ids that are expanded
  * @param onEdit - Function called when user wants to edit a task
+ * @param onAddSubtask - Functiion called when user wants to add a subtask.
  * @returns
  */
 export function TaskItem({
   task,
   onExpand,
-  isExpanded,
+  expandedTasks,
   onEdit,
+  onAddSubtask,
 }: TaskItemProps) {
   const tasks = useTasks();
   const { toggleTaskStatus, deleteTask } = useAppStore();
 
   // -- Constants --
+  const isExpanded = expandedTasks.has(task.id);
+
   const subtasks = useMemo(
     () => tasks.filter((sub) => sub.parentId === task.id),
     [tasks, task.id]
   );
 
   const hasSubtasks = subtasks.length > 0;
+
+  const showActions = onEdit || onAddSubtask;
 
   // -- Helper Functions --
   const getPriorityColour = (priority: TaskPriority) => {
@@ -78,12 +85,6 @@ export function TaskItem({
         return 'bg-slate-400';
     }
   };
-  // function would be passed from parent, for now it will log to console
-  const handleAddSubtask = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    console.log('Add subtask');
-    // this would open 'Add Task' dialog and prefill parentId
-  };
 
   return (
     <li
@@ -96,34 +97,22 @@ export function TaskItem({
         <div className="flex items-center gap-3 flex-1">
           <div className="w-6 h-6 flex items-center justify-center">
             {/* If a subtask : */}
-            {hasSubtasks ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onExpand(task.id);
-                }}
-                className="p-0 h-auto text-muted-foreground hover:text-foreground"
-              >
-                <ChevronRight
-                  size={16}
-                  className={`transition-transform duration-200 ${
-                    isExpanded ? 'rotate-90' : ''
-                  }`}
-                />
-              </Button>
-            ) : (
-              // If no subtasks, render a plus button that appears on hover, to add a task - add task not implemeneted yet
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleAddSubtask}
-                className="p-0 h-auto text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Plus size={16} />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onExpand(task.id);
+              }}
+              className="p-0 h-auto text-muted-foreground hover:text-foreground"
+            >
+              <ChevronRight
+                size={16}
+                className={`transition-transform duration-200 ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+              />
+            </Button>
           </div>
           {/* Checkbox to toggle a tasks status */}
           <Checkbox
@@ -168,31 +157,37 @@ export function TaskItem({
               )}`}
             />
           )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {onEdit && (
-                <DropdownMenuItem onClick={() => onEdit(task)}>
-                  <Edit className="mr-2 h-4 w-4" /> Edit
+          {showActions && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {onEdit && (
+                  <DropdownMenuItem onClick={() => onEdit(task)}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                  </DropdownMenuItem>
+                )}
+                {onAddSubtask && (
+                  <DropdownMenuItem onClick={() => onAddSubtask(task.id)}>
+                    <Plus className="mr-2 h-4 w-4" /> Add Subtask
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  onClick={() => deleteTask(task.id)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                onClick={() => deleteTask(task.id)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       {/* If a task has subtasks, and a task item is expanded, render the subtasks as new task items */}
@@ -208,8 +203,9 @@ export function TaskItem({
                 key={subtask.id}
                 task={subtask}
                 onExpand={onExpand}
-                isExpanded={isExpanded}
+                expandedTasks={expandedTasks}
                 onEdit={onEdit}
+                onAddSubtask={onAddSubtask}
               />
             ))}
           </ul>

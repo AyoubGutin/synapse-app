@@ -21,14 +21,20 @@ import { useObjectives } from '@/hooks/use-normalise-store';
 interface TaskFormProps {
   formData: TaskFormData;
   setFormData: React.Dispatch<React.SetStateAction<TaskFormData>>;
+  isSubtaskMode: boolean;
 }
 // -- TaskForm --
 /**
  * React function providing a reusable form component for tasks
  * @param formData - Tracks the current form data
  * @param setFormData - Updates the formData state
+ * @param isSubtaskMode - If the form is opened to add a subtask
  */
-export function TaskForm({ formData, setFormData }: TaskFormProps) {
+export function TaskForm({
+  formData,
+  setFormData,
+  isSubtaskMode,
+}: TaskFormProps) {
   const objectives = useObjectives();
 
   // helper function for input changes
@@ -96,6 +102,7 @@ export function TaskForm({ formData, setFormData }: TaskFormProps) {
         <Select
           value={formData.objectiveId}
           onValueChange={handleSelectChange('objectiveId')}
+          disabled={isSubtaskMode}
         >
           <SelectTrigger id="objectiveId">
             <SelectValue />
@@ -109,6 +116,11 @@ export function TaskForm({ formData, setFormData }: TaskFormProps) {
             ))}
           </SelectContent>
         </Select>
+        {isSubtaskMode && (
+          <p className="text-xs text-muted-foreground mt-1">
+            subtasks automatically inherit the parent's objective
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="tags">tags (comma-separated)</Label>

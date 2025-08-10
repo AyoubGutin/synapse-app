@@ -47,11 +47,6 @@ export function ObjectivesView() {
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
     useState(false);
 
-  const handleEditTask = useCallback((task: Task) => {
-    setTaskToEdit(task);
-    setIsEditDialogOpen(true);
-  }, []);
-
   const handleEditDialogClose = useCallback((isOpen: boolean) => {
     if (!isOpen) {
       setTaskToEdit(null);
@@ -125,11 +120,8 @@ export function ObjectivesView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TaskList
-                tasks={objectiveTasks}
-                objectives={EMPTY_OBJECTIVES}
-                onEdit={handleEditTask}
-              />
+              <TaskList tasks={objectiveTasks} objectives={EMPTY_OBJECTIVES} />{' '}
+              {/* not working */}
             </CardContent>
           </Card>
           <Card>

@@ -32,6 +32,10 @@ export function AllTasksView() {
   });
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isEditDialogOpen, setisEditDialogOpen] = useState(false);
+  const [parentIdForNewTask, setParentIdForNewTask] = useState<
+    string | undefined
+  >();
+  const [parentTaskTitle, setParentTaskTitle] = useState<string | undefined>();
 
   // -- Helper Functions --
   const handleFiltersChange = useCallback((newFilters: FilterValues) => {
@@ -42,6 +46,21 @@ export function AllTasksView() {
     setTaskToEdit(task);
     setisEditDialogOpen(true);
   }, []);
+
+  const handleAddSubtask = useCallback((parentId: string) => {
+    const parentTask = tasks.find((t) => t.id === parentId);
+    setParentIdForNewTask(parentId);
+    setParentTaskTitle(parentTask?.title);
+    setShowAddTaskDialog(true);
+  }, []);
+
+  const handleOpenAddTaskDialog = (isOpen: boolean) => {
+    if (!isOpen) {
+      setParentIdForNewTask(undefined);
+      setParentTaskTitle(undefined);
+    }
+    setShowAddTaskDialog(isOpen);
+  };
 
   const handleEditDialogClose = useCallback((isOpen: boolean) => {
     if (!isOpen) {
@@ -79,11 +98,13 @@ export function AllTasksView() {
         tasks={filteredTasks}
         objectives={objectives}
         onEdit={handleEditTask}
+        onAddSubtask={handleAddSubtask}
       />
 
       <AddTaskDialog
         open={showAddTaskDialog}
-        onOpenChange={setShowAddTaskDialog}
+        onOpenChange={handleOpenAddTaskDialog}
+        parentId={parentIdForNewTask}
       />
 
       <EditTaskDialog

@@ -17,7 +17,8 @@ import { useCallback, useState } from 'react';
 interface TaskListProps {
   tasks: Task[];
   objectives: Objective[];
-  onEdit: (task: Task) => void;
+  onEdit?: (task: Task) => void;
+  onAddSubtask?: (parentId: string) => void;
 }
 
 // -- Helper Functions --
@@ -42,12 +43,18 @@ const ObjectiveFolder = ({ title, taskCount, isOpen, onToggle }: any) => (
  * @param tasks - tasks to be displayed
  * @param objectives - The objectives a user has
  * @param onEdit - Function called when a user wants to edit a task, this is passed into TaskItem
+ * @param onAddSubtask - Function called when user wants to add a subtask
  * @returns
  */
-export function TaskList({ tasks, objectives, onEdit }: TaskListProps) {
+export function TaskList({
+  tasks,
+  objectives,
+  onEdit,
+  onAddSubtask,
+}: TaskListProps) {
   // -- States --
   const [openObjectives, setOpenObjectives] = useState<Set<string>>(new Set());
-  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set()); // unique id of tasks that are currently expanded
 
   // -- Helper Functions --
   const toggleObjective = useCallback((objectiveId: string) => {
@@ -96,8 +103,9 @@ export function TaskList({ tasks, objectives, onEdit }: TaskListProps) {
                   key={task.id}
                   task={task}
                   onExpand={toggleTaskExpansion}
-                  isExpanded={expandedTasks.has(task.id)}
+                  expandedTasks={expandedTasks}
                   onEdit={onEdit}
+                  onAddSubtask={onAddSubtask}
                 />
               ))}
             </ul>
@@ -107,9 +115,13 @@ export function TaskList({ tasks, objectives, onEdit }: TaskListProps) {
 
       {/* Sections for each objective */}
       {objectives.map((obj) => {
+        // All tasks in that objective
+        const allObjectiveTasks = tasks.filter(
+          (task) => task.objectiveId === obj.id
+        );
         // Filter for top-level tasks belonging to this objective
-        const objectiveTopLevelTasks = tasks.filter(
-          (task) => task.objectiveId === obj.id && !task.parentId
+        const objectiveTopLevelTasks = allObjectiveTasks.filter(
+          (task) => !task.parentId
         );
 
         if (objectiveTopLevelTasks.length === 0) return null;
@@ -119,7 +131,7 @@ export function TaskList({ tasks, objectives, onEdit }: TaskListProps) {
           <div key={obj.id}>
             <ObjectiveFolder
               title={obj.title}
-              taskCount={objectiveTopLevelTasks.length}
+              taskCount={allObjectiveTasks.length}
               isOpen={isOpen}
               onToggle={() => toggleObjective(obj.id)}
             />
@@ -134,8 +146,9 @@ export function TaskList({ tasks, objectives, onEdit }: TaskListProps) {
                     key={task.id}
                     task={task}
                     onExpand={toggleTaskExpansion}
-                    isExpanded={expandedTasks.has(task.id)}
+                    expandedTasks={expandedTasks}
                     onEdit={onEdit}
+                    onAddSubtask={onAddSubtask}
                   />
                 ))}
               </ul>

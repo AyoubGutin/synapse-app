@@ -55,8 +55,7 @@ export function TodaysAgendaWidget() {
                 key={task.id}
                 task={task}
                 onExpand={handleExpand}
-                isExpanded={expandedTasks.has(task.id)}
-                onEdit={() => {}}
+                expandedTasks={expandedTasks}
               />
             ))}
           </ul>

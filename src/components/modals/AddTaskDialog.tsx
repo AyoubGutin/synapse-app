@@ -21,6 +21,8 @@ import { TaskForm } from '../forms/TaskForm';
 interface AddTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  parentId?: string;
+  parentTaskTitle?: string;
 }
 
 // -- Constant --
@@ -37,11 +39,18 @@ const initialFormData: TaskFormData = {
  * React function returning a dialog of an add task form
  * @param open - boolean if dialog is open or not
  * @param onOpenChange - Function determining if dialog should be open or not
+ * @param parentID - The ID of the parent task
+ * @param parentTaskTitle - The title of the parent task
  * @returns
  */
-export function AddTaskDialog({ open, onOpenChange }: AddTaskDialogProps) {
+export function AddTaskDialog({
+  open,
+  onOpenChange,
+  parentId,
+  parentTaskTitle,
+}: AddTaskDialogProps) {
   // -- States --
-  const { addTask } = useAppStore();
+  const { addTask, tasks } = useAppStore();
   const [formData, setFormData] = useState(initialFormData);
 
   // Reset form when dialog is closed, with a delay to account for animations
@@ -52,6 +61,22 @@ export function AddTaskDialog({ open, onOpenChange }: AddTaskDialogProps) {
       }, 150);
     }
   }, [open]);
+
+  // When dialog opens, check for subtask
+  useEffect(() => {
+    if (open) {
+      if (parentId) {
+        const parentTask = tasks[parentId];
+        setFormData({
+          ...initialFormData,
+          parentId: parentId,
+          objectiveId: parentTask?.objectiveId || 'unassigned',
+        });
+      } else {
+        setFormData(initialFormData); //reset to default for a top level task
+      }
+    }
+  }, [open, parentId, tasks]);
 
   /**
    * Helper function to handle the logic when a user clicks submit
@@ -72,18 +97,34 @@ export function AddTaskDialog({ open, onOpenChange }: AddTaskDialogProps) {
     onOpenChange(false); // Close the modal
   };
 
+  const isSubtaskMode = !!parentId;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add a New Task</DialogTitle>
+          {isSubtaskMode && parentTaskTitle && (
+            <p className="text-sm text-muted-foreground -mb-2">
+              Subtask for:{' '}
+              <span className="font-medium text-foreground">
+                {parentTaskTitle}
+              </span>
+            </p>
+          )}
+          <DialogTitle>
+            {isSubtaskMode ? 'Add a New Subtask for Task:' : 'Add a New Task'}
+          </DialogTitle>
           <DialogDescription>
             Fill in the details below to add a new task to your list.
           </DialogDescription>
         </DialogHeader>
-        <TaskForm formData={formData} setFormData={setFormData} />
+        <TaskForm
+          formData={formData}
+          setFormData={setFormData}
+          isSubtaskMode={isSubtaskMode}
+        />
         <Button onClick={handleSubmit} className="w-full">
-          Add Task
+          {isSubtaskMode ? 'Add Subtask' : 'Add Task'}
         </Button>
       </DialogContent>
     </Dialog>
