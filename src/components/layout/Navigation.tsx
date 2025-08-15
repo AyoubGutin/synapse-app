@@ -12,6 +12,7 @@ import {
   ListTodo,
   Settings,
   ChevronLeft,
+  Lightbulb,
 } from 'lucide-react';
 import { useAppStore } from '@/store/appStore'; // Global state management
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ import { Separator } from '@/components/ui/separator';
 const navItems = [
   { to: '/', icon: Home, label: 'home.' },
   { to: '/tasks', icon: ListTodo, label: 'tasks.' },
+  { to: '/reflections', icon: Lightbulb, label: 'reflections.' },
   { to: '/graph', icon: Network, label: 'graph.' },
   { to: '/calendar', icon: CalendarDays, label: 'calendar.' },
 ];

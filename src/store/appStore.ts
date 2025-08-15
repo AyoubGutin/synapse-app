@@ -6,7 +6,11 @@
  *
  */
 import { create } from 'zustand';
-import type { Task, SubtaskCompletionPreference } from '@/types/taskTypes';
+import type {
+  Task,
+  SubtaskCompletionPreference,
+  ReflectionRating,
+} from '@/types/taskTypes';
 import type { Objective } from '@/types/objectivesTypes';
 import type { ActivityItem, ActivityType } from '@/types/activityTypes';
 import { v4 as uuidv4 } from 'uuid';
@@ -51,6 +55,10 @@ interface AppActions {
     preference: SubtaskCompletionPreference
   ) => void;
   completeTaskWithSubtasks: (taskId: string) => void;
+  addReflection: (
+    taskId: string,
+    reflection: { rating: ReflectionRating; comment: string }
+  ) => void;
 }
 
 /**
@@ -269,6 +277,18 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       });
 
       return { tasks: newTasks };
+    }),
+
+  addReflection: (taskId, reflection) =>
+    set((state) => {
+      const task = state.tasks[taskId];
+      if (!task) return {};
+      return {
+        tasks: {
+          ...state.tasks,
+          [taskId]: { ...task, reflection },
+        },
+      };
     }),
 
   // Toggle completion status of a task and log the activity

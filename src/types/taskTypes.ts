@@ -2,6 +2,7 @@
 
 export type TaskStatus = 'todo' | 'in-progress' | 'completed';
 export type TaskPriority = 'low' | 'medium' | 'high';
+export type ReflectionRating = 'too_easy' | 'just_right' | 'too_hard';
 
 // Task object
 export interface Task {
@@ -14,6 +15,11 @@ export interface Task {
   tags?: string[];
   objectiveId?: string;
   parentId?: string;
+  completedAt?: string;
+  reflection?: {
+    rating?: ReflectionRating;
+    comment?: string;
+  };
 }
 
 // Define the shape of the form data

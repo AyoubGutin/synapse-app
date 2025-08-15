@@ -10,6 +10,7 @@ import { Navigation } from './Navigation';
 import { Header } from './Header';
 import { useAppStore } from '@/store/appStore'; // Global state management
 import { Separator } from '../ui/separator';
+import { Toaster } from '@/components/ui/sonner';
 
 // -- Layout --
 /**
@@ -34,6 +35,7 @@ export function Layout() {
           <Outlet /> {/* changes based on current route */}
         </div>
       </main>
+      <Toaster />
     </div>
   );
 }
