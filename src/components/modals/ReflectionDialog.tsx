@@ -1,7 +1,7 @@
 /**
  * @file Dialog for reflecting on. completed task
  */
-import { useState, useEffect, type Ref } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/appStore';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
