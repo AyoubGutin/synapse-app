@@ -82,7 +82,8 @@ export function TaskList({
 
   // -- Constants --
   const unassignedTasks = tasks.filter(
-    (task) => !task.objectiveId && !task.parentId // if not child + no objective id
+    (task) =>
+      (task.objectiveId === 'unassigned' || !task.objectiveId) && !task.parentId
   );
 
   return (

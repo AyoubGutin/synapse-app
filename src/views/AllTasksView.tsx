@@ -81,6 +81,7 @@ export function AllTasksView() {
       const matchesPriority =
         filters.priorityFilter === 'all' ||
         task.priority === filters.priorityFilter;
+      task.priority === filters.priorityFilter;
       return matchesSearch && matchesStatus && matchesPriority;
     });
   }, [tasks, filters]);

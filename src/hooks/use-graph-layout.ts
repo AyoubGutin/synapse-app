@@ -1,9 +1,20 @@
 import { useMemo } from 'react';
-import { MarkerType } from 'reactflow';
+import { MarkerType, type Edge, type Node } from 'reactflow';
+import type { Task, TaskStatus, TaskPriority } from '@/types/taskTypes';
+import type { Objective } from '@/types/objectivesTypes';
 
-const getLayoutedElements = (nodes, edges) => {
+interface CustomNodeData {
+  label: string;
+  parentId?: string;
+  objectiveId?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+}
+
+type AppNode = Node<CustomNodeData>;
+
+const getLayoutedElements = (nodes: AppNode[], edges: Edge[]) => {
   const nodeWidth = 180;
-  const nodeHeight = 40;
   const verticalGap = 100;
   const horizontalGap = 50;
   let totalXOffset = 0;
@@ -24,7 +35,11 @@ const getLayoutedElements = (nodes, edges) => {
     let yLevel = 1;
 
     // Recursive function to position nodes in a tree
-    const positionChildren = (parentId, parentX, level) => {
+    const positionChildren = (
+      parentId: string,
+      parentX: number,
+      level: number
+    ) => {
       const children = treeNodes.filter((n) => n.data.parentId === parentId);
       if (children.length === 0) return;
 
@@ -58,7 +73,7 @@ const getLayoutedElements = (nodes, edges) => {
   return { nodes, edges };
 };
 
-export const useGraphLayout = (tasks, objectives) => {
+export const useGraphLayout = (tasks: Task[], objectives: Objective[]) => {
   return useMemo(() => {
     const nodes = [
       ...objectives.map((obj) => ({
@@ -81,11 +96,11 @@ export const useGraphLayout = (tasks, objectives) => {
       })),
     ];
 
-    const edges = tasks
+    const edges: Edge[] = tasks
       .filter((task) => task.parentId || task.objectiveId)
       .map((task) => ({
         id: `e-${task.parentId || task.objectiveId}-${task.id}`,
-        source: task.parentId || task.objectiveId,
+        source: (task.parentId || task.objectiveId)!,
         target: task.id,
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
