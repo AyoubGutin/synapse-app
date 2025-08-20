@@ -1,17 +1,6 @@
-import { Handle, Position } from 'reactflow';
-import { CheckCircle2, Circle } from 'lucide-react'; // Import icons
+import { Handle, Position, type NodeProps } from 'reactflow';
+import { CheckCircle2, Circle } from 'lucide-react';
 import type { TaskPriority, TaskStatus } from '@/types/taskTypes';
-
-interface CustomNodeData {
-  label: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-}
-
-interface CustomNodeProps {
-  data: CustomNodeData;
-  type: 'task' | 'objective';
-}
 
 const nodeStyles = {
   task: {
@@ -32,14 +21,21 @@ const nodeStyles = {
   },
 };
 
-const priorityColors = {
+const priorityColours: Record<TaskPriority, string> = {
   high: '#ef4444',
   medium: '#f97316',
   low: '#22c55e',
 };
 
-export const CustomNode = ({ data, type }: CustomNodeProps) => {
-  const style = nodeStyles[type] || nodeStyles.task;
+export const CustomNode = ({
+  data,
+  type,
+}: NodeProps<{
+  label: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+}>) => {
+  const style = type === 'objective' ? nodeStyles.objective : nodeStyles.task;
 
   return (
     <div style={style}>
@@ -66,7 +62,7 @@ export const CustomNode = ({ data, type }: CustomNodeProps) => {
               width: '8px',
               height: '8px',
               borderRadius: '50%',
-              backgroundColor: priorityColors[data.priority],
+              backgroundColor: priorityColours[data.priority],
             }}
           />
         )}

@@ -6,10 +6,13 @@
 
 // -- Imports --
 import { useState, useEffect } from 'react';
+import { useAppStore } from '@/store/appStore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { GenerateFormStage } from '@/components/modals/generate_modal_stages/GenerateFormStage';
 import { LoadingStage } from '@/components/modals/generate_modal_stages/LoadingStage';
 import { PreviewStage } from '@/components/modals/generate_modal_stages/PreviewStage';
+import type { Task } from '@/types/taskTypes';
+import { v4 as uuidv4 } from 'uuid';
 
 // -- Type definitions --
 type ModalStage = 'form' | 'loading' | 'preview';
@@ -26,6 +29,7 @@ export function GenerateTaskDialog({
   open,
   onOpenChange,
 }: GenerateTaskDialogProps) {
+  const { addTask, addObjective, mainObjective } = useAppStore();
   // -- states --
   const [stage, setStage] = useState<ModalStage>('form'); // local state to determine what stage it currently is, default is 'form'
   const [formData, setFormData] = useState({
@@ -51,11 +55,23 @@ export function GenerateTaskDialog({
       setStage('preview');
     }, 2000); // artificial delay to stimualte API call
   };
-  const handleConfirm = () => {
-    // API call here in the future
-    console.log('Tasks confirmed!');
-    onOpenChange(false); // close the modal
+  const handleConfirm = (tasksToCreate: Omit<Task, 'id' | 'objectiveId'>[]) => {
+    addObjective({
+      title: mainObjective || 'New AI Objective',
+    });
+
+    // to-do: need to get the new objective's ID to link the tasks.
+    // for now, we'll link them as 'unassigned'.
+    tasksToCreate.forEach((task) => {
+      addTask({
+        ...task,
+        objectiveId: 'unassigned', // placeholder until we can get the new ID from store
+      });
+    });
+
+    onOpenChange(false);
   };
+
   const handleEdit = () => {
     setStage('form'); // go back to form
   };
